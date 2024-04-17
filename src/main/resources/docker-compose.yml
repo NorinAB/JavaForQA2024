@@ -1,0 +1,19 @@
+version: '2.1'
+
+services:
+  db:
+    image: postgres:10
+    command: "-c log_statement=all"
+    expose:
+      - 5432
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "psql -U postgres -c \"SELECT 1 FROM pg_database WHERE datname = 'postgres';\" | grep -q 1"]
+      interval: 1000s
+      timeout: 10s
+      retries: 5
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
