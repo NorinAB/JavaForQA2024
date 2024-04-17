@@ -1,0 +1,213 @@
+1. Добавить в build.gradle
+1.1 Добавить в plugins:
+
+id 'org.springframework.boot' version '3.2.4'
+id 'io.spring.dependency-management' version '1.1.4'
+
+1.2 Добавить в dependencies:
+
+implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0'
+implementation 'org.springframework.boot:spring-boot-starter-web'
+
+1.3 Обновить gradle зависимости: Gradle -> Reload All Gradle Projects
+2 Добавить в пакет класс ShopApplication в пакет ru.shop
+
+package ru.shop;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class ShopApplication {
+    public static void main(String[] args) {  
+        SpringApplication.run(ShopApplication.class, args);  
+    }  
+}
+
+3 Запустить ShopApplication
+4 Проверить, что по ссылке открылся http://localhost:8080/swagger-ui/index.html swagger (Пока пустой)
+5 Создаём контроллеры
+5.1 Добавить пакет ru.shop.controller
+5.2 Добавить класс ProductController
+
+package ru.shop.controller;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/product")
+public class ProductController { }
+
+5.3 Добавить в него метод получения всех продуктов
+
+@GetMapping
+public List<Product> getAll() { }
+
+5.3 Делаем, чтобы метод возвращал лист заранее приготовленных элементов.
+5.4 Перезапустить приложение, найти в swagger-e метод и попробовать вызвать его.
+5.5 Аналогичным образом создать CustomerController и OrderController с методами получения всех элементов
+5.6 Проверить работоспособность через swagger
+6 Вместо заготовленных коллекций создаём внутри котроллеров сервисы (OrderService, CustomerService, ProductService),
+как это делали в Main классе
+7 Заменить константы в методах получения всех элементов на вызов метода findAll() соотвествеющего сервиса
+8 Проверить работоспособность через swagger: методы работают, но возвращают пустоую коллекцию
+9 Добавить методы создания заказчиков, продуктов аннотируем их @PostMapping
+9.1 Для продуктов
+
+@PostMapping
+public void save(@RequestBody Product product) { }
+
+9.2 Реализовать метод: сохраняем через ProductService
+9.3 Создать аналогичный метод в CustomerController
+
+@PostMapping
+public void save(@RequestBody Customer customer) { }
+
+9.4 Проверить работоспособность через swagger
+10. Создать методы получения сущностей по id в репозиториях
+10.1 Для продуктов
+
+public Optional<Product> findById(UUID id) { }
+
+10.2 Реализовать поиск product в коллекции products по id. Если элемент не найден, то вернуть Optional.empty()
+10.3 По аналогии создать методы в CustomerRepository и OrderRepository
+11. Создать исключение исключение
+
+public class EntityNotFoundException extends RuntimeException { }
+
+12. В сервисах создать методы получения элеметов по идентификатору, используя репозиторий. Если элемент будет
+не найден, то нужно генерировать ошибку EntityNotFoundException
+12.1 Для ProductService
+
+public Product getById(UUID id) {}
+
+12.2 Для CustomerService
+
+public Customer getById(UUID id) {}
+
+12.3 Для OrderService
+
+public Order getById(UUID id) {}
+
+13. Создаём методы получения по идентификатору в контроллерах
+13.1 Для ProductController:
+
+@GetMapping("/{id}")
+public Product getById(@PathVariable UUID id) { }
+
+13.2 Для заказчиков:
+
+@GetMapping("/{id}")
+public Customer getById(@PathVariable UUID id) { }
+
+13.3 Для заказов:
+
+@GetMapping("/{id}")
+public Order getById(@PathVariable UUID id) { }
+
+13.4 Проверить работоспособность через swagger
+
+------------------
+
+14. Делаем Сервисы Spring бинами
+14.1 Удаляем класс ru.shop.Main или комметируем метод main
+14.2 Добавить аннтоацию @Service в сервисы.
+14.3 Делаем так, чтобы в Controller-ы сервисы передавались во время создания через конструктор
+14.4 Репозитории для сервисов нужно создавать прямо в соотвествующему классе, в месте объявления
+14.5 Проверить работу через swagger
+
+15. Добавить работу с БД
+15.1 Добавить в build.gradle зависимости
+
+implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+implementation 'org.postgresql:postgresql:42.7.3'
+
+16.2 Обновить gradle зависимости: Gradle -> Reload All Gradle Projects
+16.3 Добавить информацию о подключении к БД в новый файл scr/main/resources/application.yml
+
+spring:
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/
+    username: postgres
+    password: postgres
+    database: postgres[.idea](.idea)
+    driverClassname: org.postgresql.Driver
+
+16.4 Создать необходимые таблицы в бд (БД можно запустить через resources/docker-compose.yml)
+SQL скрипт для создания таблиц resources/init.sql
+
+17 Аннотируеум сущености
+17.1 Product
+
+// Сущности храниться в БД
+@Entity
+// Задаём таблицы для хранения
+@Table(name = "product")
+public class Product {
+
+    // первичный ключ
+    @Id
+    private UUID id;
+
+    private String name;
+
+    long cost;
+
+    // ENUM храниться в БД как строка
+    @Enumerated(EnumType.STRING)
+    private ProductType productType;
+}
+
+17.2 Добавить аннтотации @Entity @Table @Id в классы Customer Order
+18 Поменять репозиитори
+18.1 ProductRepository
+
+@Repository
+public interface ProductRepository extends JpaRepository<Product, UUID> { }
+
+18.2 Для CustomerRepository
+
+@Repository
+public interface CustomerRepository extends JpaRepository<Customer, UUID> { }
+
+18.3 OrderRepository
+
+@Repository
+public interface OrderRepository extends JpaRepository<Order, UUID> { }
+
+18.4 Проверить работу через swagger
+
+19. Добавить внедрения репозитриев в сервисы через конструктор, так же как сервисы сейчас внедряются в контроллеры
+
+Дополнительно
+
+19. Добавить метод сохранения заказа в OrderController
+
+@PostMapping
+public void save(UUID productId, UUID customerId, int count) { }
+
+Для этого в OrderController нужно будет добавить ProductService и CustomerService, и в методе save получать по id
+customer-а и product
+
+20. Добавить в ProductController метод получения списка продуктов по типу
+Для получения из БД используем ProductService, метод findByProductType
+
+@GetMapping("/type/{productType}")
+public List<Product> getByProductType(@PathVariable ProductType productType) {}
+
+21. Добавить в OrderController метод получения заказов пользователя
+Для получения используем OrderService, метод findByCustomer
+
+@GetMapping("/customer/{customerId}")
+public List<Order> getByCustomerId(UUID customerId) { }
+
+22. Добавить в OrderController метод получения суммы заказов пользователя
+Для получения используем OrderService, метод getTotalCustomerAmount
+
+@GetMapping("/customer/{customerId}/total")
+public long getCustomerTotal(UUID customerId) { }

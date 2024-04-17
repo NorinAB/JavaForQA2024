@@ -16,5 +16,4 @@ public class CustomerRepository {
     public List<Customer> findAll() {
         return customers;
     }
-
 }
