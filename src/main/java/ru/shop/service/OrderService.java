@@ -2,6 +2,7 @@ package ru.shop.service;
 
 import lombok.RequiredArgsConstructor;
 import ru.shop.exception.BadOrderCountException;
+import ru.shop.exception.EntityNotFoundException;
 import ru.shop.model.Customer;
 import ru.shop.model.Order;
 import ru.shop.model.Product;
@@ -47,4 +48,7 @@ public class OrderService {
         return repository.findAll();
     }
 
+    public Order getById(UUID id) {
+        return repository.findById(id).orElseThrow(EntityNotFoundException::new);
+    }
 }
