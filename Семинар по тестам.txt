@@ -1,0 +1,139 @@
+1. Добавить в build.gradle
+1.1 Добавить в dependencies:
+
+testImplementation 'org.springframework.boot:spring-boot-starter-test'
+testImplementation 'org.assertj:assertj-core:3.24.2'
+testImplementation 'io.rest-assured:rest-assured:5.4.0'
+
+1.2 Обновить gradle зависимости: Gradle -> Reload All Gradle Projects
+2. Создать каталог src/test/java
+3. Созадать с помощью Idea тест для CustomerService
+
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import ru.shop.repository.CustomerRepository;
+
+class CustomerServiceTest {
+
+    private final CustomerRepository repository = Mockito.mock();
+    private final CustomerService customerService = new CustomerService(repository);
+
+    @Test
+    public void shouldGetCustomer() {
+        // given
+
+        // when
+
+        // then
+    }
+}
+
+3.1 Зададим первоначальные значения
+// given
+UUID customerId = UUID.randomUUID();
+Customer mockedCustomer = new Customer(customerId, "name", "phone", 10);
+when(repository.findById(customerId)).thenReturn(Optional.of(mockedCustomer));
+
+3.2 Выполняем действие
+// when
+Customer customer = customerService.getById(customerId);
+
+3.3 Проверяем результат
+Assertions.assertEquals(mockedCustomer, customer);
+
+4 Создать тест проверяющий, что сервис выдаст ошибку, если элемент не будет найден
+@Test
+public void shouldThrowWhenCustomerNotFound() {
+    // then
+    Assertions.assertThrows(
+            EntityNotFoundException.class,
+            () -> customerService.getById(UUID.randomUUID())
+    );
+}
+
+5. Создать аналогичные тесты для Product-а
+6. Применяем AssetJ
+6.1 Меняем/добавляем в CustomerServiceTest
+
+Assertions.assertEquals(mockedCustomer, customer); -> assertThat(customer).isEqualTo(mockedCustomer);
+
+6.2 Меняем/добавляем в CustomerServiceTest
+
+Assertions.assertThrows(
+        EntityNotFoundException.class,
+        () -> customerService.getById(UUID.randomUUID())
+);
+->
+assertThatThrownBy(() -> customerService.getById(UUID.randomUUID())).isInstanceOf(EntityNotFoundException.class);
+
+7 Применяем RestAssured
+7.1 Создать с поомщью IDEA тест для CustomerController
+
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpStatus;
+import ru.shop.model.Customer;
+import ru.shop.repository.CustomerRepository;
+
+import java.util.List;
+
+import static io.restassured.RestAssured.when;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+class CustomerControllerTest {
+
+    @MockBean
+    CustomerRepository customerRepository;
+
+    @LocalServerPort
+    private int port;
+
+    private String getRootUrl() {
+        return "http://localhost:" + port;
+    }
+
+    @Test
+    public void shouldSaveCustomer() {
+        // given
+        Mockito.when(customerRepository.findAll()).thenReturn(List.of(new Customer()));
+
+        // then
+        when()
+                .get(getRootUrl() + "/customer")
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .extract()
+                .as(Customer[].class);
+    }
+}
+
+7.2 Создать тест на POST "/customer"
+
+@Test
+public void shouldSaveCustomer() {
+    // given
+    Map<String, String> request = new HashMap<>();
+    request.put("id", UUID.randomUUID().toString());
+    request.put("name", "name1");
+    request.put("phone", "phone");
+    request.put("age", "10");
+
+    // then
+    given()
+            .contentType("application/json")
+            .body(request)
+            .when()
+            .post(getRootUrl() + "/customer")
+            .then()
+            .statusCode(HttpStatus.OK.value());
+}
+
+7.3 Создать тест на GET "/customer/{id}"
+8 Создать тест для OrderService
+8.1 Для метода add (success path с использованием verify)
+8.2 Для метода add проверка ошибки BadOrderCountException
+8.3 Для метода findByCustomer
+8.4 Для метода getTotalCustomerAmount
