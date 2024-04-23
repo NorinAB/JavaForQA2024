@@ -1,22 +1,19 @@
 package ru.shop.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.shop.model.Customer;
-import ru.shop.model.Order;
-import ru.shop.model.Product;
-import ru.shop.repository.CustomerRepository;
 import ru.shop.service.CustomerService;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/customer")
 public class CustomerController {
 
-    CustomerService customerService = new CustomerService(
-            new CustomerRepository()
-    );
+    private final CustomerService customerService;
 
     @GetMapping
     public List<Customer> getAll() {
