@@ -13,6 +13,10 @@ repositories {
 }
 
 dependencies {
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.assertj:assertj-core:3.24.2'
+    testImplementation 'io.rest-assured:rest-assured:5.4.0'
+
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0'
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
