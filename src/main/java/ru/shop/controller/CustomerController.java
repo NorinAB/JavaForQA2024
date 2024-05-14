@@ -1,6 +1,8 @@
 package ru.shop.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.shop.model.Customer;
 import ru.shop.service.CustomerService;
@@ -21,7 +23,7 @@ public class CustomerController {
     }
 
     @PostMapping
-    public void save(@RequestBody Customer customer) {
+    public void save(@RequestBody @Valid Customer customer) {
         customerService.save(customer);
     }
 
