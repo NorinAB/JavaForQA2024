@@ -2,104 +2,102 @@ package ru.shop.service;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import ru.shop.exception.BadOrderCountException;
+import ru.shop.exception.EntityNotFoundException;
 import ru.shop.model.Customer;
 import ru.shop.model.Order;
 import ru.shop.model.Product;
+import ru.shop.model.ProductType;
 import ru.shop.repository.OrderRepository;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 class OrderServiceTest {
+    private final OrderRepository orderRepository = Mockito.mock();
+    private final OrderService orderService = new OrderService(orderRepository);
 
-    private final OrderRepository repository = Mockito.mock();
-    private final OrderService service = new OrderService(repository);
 
     @Test
     public void shouldAddOrder() {
-        // given
-        Customer customer = new Customer();
-        Product product = new Product();
-
-        // when
-        service.add(customer, product, 10);
-
-        // then
-        verify(repository).save(any());
+        //given
+        var customer = new Customer(UUID.randomUUID(), "name", "phone", 11);
+        var product = new Product(UUID.randomUUID(), "name", 10, ProductType.GOOD);
+        //when
+        orderService.add(customer, product, 10);
+        //then
+        ArgumentCaptor<Order> orderArgumentCaptor = ArgumentCaptor.captor();
+        Mockito.verify(orderRepository).save(orderArgumentCaptor.capture());
+        Order saveOrder = orderArgumentCaptor.getValue();
+        Assertions.assertEquals(10, saveOrder.getCount());
+        Assertions.assertEquals(customer.getId(), saveOrder.getCustomerId());
+        Assertions.assertEquals(product.getId(), saveOrder.getProductId());
     }
 
-    @Test
-    public void shouldThrowBadOrderCountExceptionWhenCountIsLessOrEqualsThanZero() {
-        // given
-        Customer customer = new Customer();
-        Product product = new Product();
+    @ParameterizedTest
+    @ValueSource(ints = {0,-1, Integer.MIN_VALUE})
+    public void shouldThrowBadOrderCountExeption() {
 
-        // when
+        var customer = new Customer(UUID.randomUUID(), "name", "phone", 11);
+        var product = new Product(UUID.randomUUID(), "name", 10, ProductType.GOOD);
+
+        //given
+        //when
+
+        //then
         Assertions.assertThrows(
-                BadOrderCountException.class,
-                () -> service.add(customer, product, 0)
+                EntityNotFoundException.class,
+                () -> orderService.add(customer,product,10)
         );
     }
 
     @Test
-    public void shouldFindByCustomer() {
-        // given
-        UUID customerId = UUID.randomUUID();
-        Customer customer = new Customer(
-                customerId, "name", "phone", 20
+    public void shouldfindByCustomerOrder() {
+        //given
+        var customer = new Customer(UUID.randomUUID(), "name", "phone", 11);
+        var firstOrderId = UUID.randomUUID();
+        var secondOrderId = UUID.randomUUID();
+        Mockito.when(orderRepository.findAll()).thenReturn(
+                List.of(
+                        new Order(UUID.randomUUID(),UUID.randomUUID(),UUID.randomUUID(),2,10),
+                        new Order(firstOrderId, customer.getId(),UUID.randomUUID(),2,10),
+                        new Order(secondOrderId,customer.getId(),UUID.randomUUID(),2,20)
+                )
         );
-
-        Order customerOrder = new Order(
-                UUID.randomUUID(), customerId, UUID.randomUUID(), 10, 10
-        );
-        Order notCustomerOrder = new Order(
-                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), 10, 10
-        );
-        Mockito.when(repository.findAll())
-                .thenReturn(
-                        List.of(customerOrder, notCustomerOrder)
-                );
-
-        // when
-        List<Order> lookUpResult = service.findByCustomer(customer);
-
-        // then
-        Assertions.assertEquals(1, lookUpResult.size());
-        Assertions.assertEquals(customerOrder, lookUpResult.get(0));
+        //when
+        List<Order> customerOrders = orderService.findByCustomer(customer);
+        //then
+       Assertions.assertEquals(2,customerOrders.size());
+       assertThat(customerOrders)
+               .hasSize(2)
+               .extracting(Order::getId)
+               .containsExactly(firstOrderId,secondOrderId);
     }
 
     @Test
-    public void shouldFindCustomerTotal() {
-        // given
-        UUID customerId = UUID.randomUUID();
-        Customer customer = new Customer(
-                customerId, "name", "phone", 20
+    public void shoulgdetTotalCustomerAmount() {
+        //given
+        var customer = new Customer(UUID.randomUUID(), "name", "phone", 11);
+        var firstOrderId = UUID.randomUUID();
+        var secondOrderId = UUID.randomUUID();
+        Mockito.when(orderRepository.findAll()).thenReturn(
+                List.of(
+                        new Order(UUID.randomUUID(),UUID.randomUUID(),UUID.randomUUID(),2,10),
+                        new Order(firstOrderId, customer.getId(),UUID.randomUUID(),2,10),
+                        new Order(secondOrderId,customer.getId(),UUID.randomUUID(),2,20)
+                )
         );
+        //when
+        long totalCustomerAmount = orderService.getTotalCustomerAmount(customer);
+        //then
+        Assertions.assertEquals(30,orderService.getTotalCustomerAmount( customer));
 
-        Order customerOrder = new Order(
-                UUID.randomUUID(), customerId, UUID.randomUUID(), 10, 10
-        );
-        Order customerOrder2 = new Order(
-                UUID.randomUUID(), customerId, UUID.randomUUID(), 10, 20
-        );
-        Order notCustomerOrder = new Order(
-                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), 10, 10
-        );
-        Mockito.when(repository.findAll())
-                .thenReturn(
-                        List.of(customerOrder, customerOrder2, notCustomerOrder)
-                );
-
-        // when
-        long result = service.getTotalCustomerAmount(customer);
-
-        // then
-        Assertions.assertEquals(30, result);
     }
 
 }

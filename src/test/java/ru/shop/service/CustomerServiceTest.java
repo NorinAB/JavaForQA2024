@@ -1,5 +1,6 @@
 package ru.shop.service;
 
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -10,12 +11,7 @@ import ru.shop.repository.CustomerRepository;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.Mockito.when;
-
 class CustomerServiceTest {
-
     private final CustomerRepository repository = Mockito.mock();
     private final CustomerService customerService = new CustomerService(repository);
 
@@ -23,15 +19,16 @@ class CustomerServiceTest {
     public void shouldGetCustomer() {
         // given
         UUID customerId = UUID.randomUUID();
-        Customer mockedCustomer = new Customer(customerId, "name", "phone", 10);
-        when(repository.findById(customerId)).thenReturn(Optional.of(mockedCustomer));
+        Customer mockedCustomer = new Customer();
+        Mockito.when(repository.findById(customerId)).thenReturn(Optional.of(mockedCustomer));
 
         // when
         Customer customer = customerService.getById(customerId);
 
         // then
+
         Assertions.assertEquals(mockedCustomer, customer);
-        assertThat(customer).isEqualTo(mockedCustomer);
+
     }
 
     @Test
@@ -41,7 +38,37 @@ class CustomerServiceTest {
                 EntityNotFoundException.class,
                 () -> customerService.getById(UUID.randomUUID())
         );
-        assertThatThrownBy(() -> customerService.getById(UUID.randomUUID())).isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    public void shouldSaveCustomer() {
+        // given
+        UUID customerId = UUID.randomUUID();
+        Customer customer = new Customer();
+
+
+        // when
+         customerService.save(customer);
+
+        // then
+
+        Mockito.verify(repository, Mockito.times(1)).save(customer);
+
+    }
+
+    @Test
+    public void shouldUserRepositoryfindAllWhenCallFindAllCustomer() {
+        // given
+
+
+
+        // when
+        customerService.findAll();
+
+        // then
+
+        Mockito.verify(repository).findAll();
+
     }
 
 }

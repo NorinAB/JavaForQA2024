@@ -17,9 +17,9 @@ import java.util.UUID;
 @RequestMapping("/order")
 public class OrderController {
 
-    private final OrderService orderService;
-    private final CustomerService customerService;
-    private final ProductService productService;
+    private  OrderService orderService;
+    private  CustomerService customerService;
+    private  ProductService productService;
 
     @GetMapping
     public List<Order> getAll() {

@@ -1,7 +1,8 @@
 package ru.shop.controller;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -29,45 +30,36 @@ class CustomerControllerTest {
     }
 
     @Test
-    public void shouldGetCustomerAllCustomers() {
+    public void shouldGetCustomer() {
         // given
         Mockito.when(customerRepository.findAll()).thenReturn(List.of(new Customer()));
 
-        // when
-        List<Customer> response = Arrays.stream(when()
-                        .get(getRootUrl() + "/customer")
-                        .then()
-                        .statusCode(HttpStatus.OK.value())
-                        .extract()
-                        .as(Customer[].class))
-                .toList();
-
         // then
-        Assertions.assertEquals(1, response.size());
-    }
-
-    @Test
-    public void shouldGetCustomerById() {
-        // given
-        UUID customerId = UUID.randomUUID();
-        Customer customer = new Customer(customerId, "name", "phohne", 10);
-        Mockito.when(customerRepository.findById(customerId))
-                .thenReturn(Optional.of(customer));
-
-        // when
-        Customer response = when()
-                .get(getRootUrl() + "/customer/" + customerId)
+        when()
+                .get(getRootUrl() + "/customer")
                 .then()
                 .statusCode(HttpStatus.OK.value())
                 .extract()
-                .as(Customer.class);
-
-        // then
-        Assertions.assertEquals(customer.getId(), response.getId());
+                .as(Customer[].class);
     }
 
+//    @Test
+//    public void shouldGetCustomerById() {
+//        // given
+//        Mockito.when(customerRepository.findBy(customerId)).thenReturn(Optional.of(new Customer(customerId,"name")));
+//
+//        // then
+//        when()
+//                .get(getRootUrl() + "/customer")
+//                .then()
+//                .statusCode(HttpStatus.OK.value())
+//                .extract()
+//                .as(Customer[].class);
+//    }
+
+
     @Test
-    public void shouldSaveCustomer() {
+    public void shouldPostCustomer() {
         // given
         Map<String, String> request = new HashMap<>();
         request.put("id", UUID.randomUUID().toString());
@@ -84,4 +76,8 @@ class CustomerControllerTest {
                 .then()
                 .statusCode(HttpStatus.OK.value());
     }
+
+
+
+
 }

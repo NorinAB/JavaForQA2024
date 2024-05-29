@@ -14,7 +14,7 @@ import java.util.UUID;
 @RequestMapping("/product")
 public class ProductController {
 
-    private final ProductService productService;
+    private  ProductService productService;
 
     @GetMapping
     public List<Product> getAll() {
