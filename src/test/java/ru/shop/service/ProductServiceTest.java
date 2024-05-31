@@ -1,6 +1,7 @@
 package ru.shop.service;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import ru.shop.exception.EntityNotFoundException;
@@ -19,7 +20,7 @@ import static org.mockito.Mockito.when;
 class ProductServiceTest {
     private final ProductRepository repository = Mockito.mock();
     private final ProductService productService = new ProductService(repository);
-
+    @DisplayName("Сервис должен получать проедукт по id")
     @Test
     public void shouldGetProduct() {
         UUID productId = UUID.randomUUID();

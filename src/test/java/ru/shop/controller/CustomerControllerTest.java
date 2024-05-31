@@ -1,5 +1,7 @@
 package ru.shop.controller;
 
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
@@ -11,14 +13,16 @@ import org.springframework.http.HttpStatus;
 import ru.shop.model.Customer;
 import ru.shop.repository.CustomerRepository;
 
-import java.util.List;
+import java.util.*;
 
 import static io.restassured.RestAssured.when;
+import static org.mockito.ArgumentMatchers.any;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CustomerControllerTest {
     @MockBean
     CustomerRepository customerRepository;
+    Map<String, String> request;
 
     @LocalServerPort
     private int port;
@@ -27,8 +31,28 @@ class CustomerControllerTest {
         return "http://localhost:" + port;
     }
 
+
     @Test
     public void shouldSaveCustomer() {
+        // given
+        request = new HashMap<>();
+        request.put("id", UUID.randomUUID().toString());
+        request.put("name", "name1");
+        request.put("phone", "phone");
+        request.put("age", "10");
+
+        // then
+        given()
+                .contentType("application/json")
+                .body(request)
+                .when()
+                .post(getRootUrl() + "/customer")
+                .then()
+                .statusCode(HttpStatus.OK.value());
+        Mockito.verify(customerRepository).save(any());
+    }
+    @Test
+    public void shouldGetCustomer() {
         // given
         Mockito.when(customerRepository.findAll()).thenReturn(List.of(new Customer()));
 
@@ -40,5 +64,32 @@ class CustomerControllerTest {
                 .extract()
                 .as(Customer[].class);
     }
+    @Test
+    public void shouldGetByIdCustomer() {
+        // given
+//        request = new HashMap<>();
+//        request.put("id", UUID.randomUUID().toString());
+//        request.put("name", "name1");
+//        request.put("phone", "phone");
+//        Long age = 10L;
+//        request.put("age", age.toString());
+
+//        Mockito.when(customerRepository.save(new Customer(UUID.fromString(request.get("id")), request.get("name"), request.get("phone"), age))).thenReturn(new Customer(UUID.fromString(request.get("id")), request.get("name"), request.get("phone"), age));
+//        Mockito.verify(customerRepository).save(any());
+        Customer customer = new Customer(UUID.randomUUID(), "name2", "123", 10L);
+        Mockito.when(customerRepository.findById(customer.getId())).thenReturn(Optional.of(customer));
+
+        // then
+        when()
+                .get(getRootUrl() + "/customer/" + customer.getId())
+                .then()
+                .statusCode(HttpStatus.OK.value())
+                .extract().response().body()
+                .as(Customer.class)
+                .getName().equals(customer.getName());
+//        assertThat(customer).returns(customer.getId(), c)
+
+    }
+
 
 }

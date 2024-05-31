@@ -25,7 +25,7 @@ class CustomerServiceTest {
         Customer mockedCustomer = new Customer(customerId, "name", "phone", 10);
         when(repository.findById(customerId)).thenReturn(Optional.of(mockedCustomer));
         Customer customer = customerService.getById(customerId);
-        assertThat(customer).isEqualTo(mockedCustomer);
+        Assertions.assertEquals(mockedCustomer, customer);
     }
     @Test
     public void shouldThrowWhenCustomerNotFound() {
