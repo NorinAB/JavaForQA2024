@@ -45,8 +45,6 @@ public class OrderServiceTest {
     public void shouldThrowWhenCountIsBad(Integer count) {
         var product = new Product(UUID.randomUUID(), "p1", 10, ProductType.GOOD);
         var customer = new Customer(UUID.randomUUID(), "name", "1233", 12);
-//        orderService.add(customer, product, -10L);
-        // then
         Assertions.assertThrows(
                 BadOrderCountException.class,
                 () -> orderService.add(customer, product, count)
@@ -54,9 +52,7 @@ public class OrderServiceTest {
     }
     @Test
     public void shouldFindByCustomer() {
-        var product = new Product(UUID.randomUUID(), "p1", 10, ProductType.GOOD);
         var customer = new Customer(UUID.randomUUID(), "name", "1233", 12);
-        var customer1 = new Customer(UUID.randomUUID(), "name1", "3211", 12);
         var firstOrderId = UUID.randomUUID();
         var secondOrderId = UUID.randomUUID();
         Order order = new Order(firstOrderId, customer.getId(), UUID.randomUUID(), 2, 10);
@@ -68,7 +64,6 @@ public class OrderServiceTest {
         List<Order> customerOrders = orderService.findByCustomer(customer);
         Assertions.assertEquals(2, customerOrders.size());
         assertThat(customerOrders).hasSize(2).extracting(Order::getId).containsExactly(firstOrderId, secondOrderId);
-
         Assertions.assertEquals(order, customerOrders.get(0));
         Assertions.assertEquals(order1, customerOrders.get(1));
 
@@ -89,11 +84,6 @@ public class OrderServiceTest {
         ));
         long count = orderService.getTotalCustomerAmount(customer);
         Assertions.assertEquals(30, count);
-//        assertThat(customerOrders).hasSize(2).extracting(Order::getId).containsExactly(firstOrderId, secondOrderId);
-//
-//        Assertions.assertEquals(order, customerOrders.get(0));
-//        Assertions.assertEquals(order1, customerOrders.get(1));
     }
-    @Test
-    public void TotalCustomerAmountNull() {}
+
 }

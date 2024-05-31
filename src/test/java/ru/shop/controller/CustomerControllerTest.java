@@ -66,20 +66,8 @@ class CustomerControllerTest {
     }
     @Test
     public void shouldGetByIdCustomer() {
-        // given
-//        request = new HashMap<>();
-//        request.put("id", UUID.randomUUID().toString());
-//        request.put("name", "name1");
-//        request.put("phone", "phone");
-//        Long age = 10L;
-//        request.put("age", age.toString());
-
-//        Mockito.when(customerRepository.save(new Customer(UUID.fromString(request.get("id")), request.get("name"), request.get("phone"), age))).thenReturn(new Customer(UUID.fromString(request.get("id")), request.get("name"), request.get("phone"), age));
-//        Mockito.verify(customerRepository).save(any());
         Customer customer = new Customer(UUID.randomUUID(), "name2", "123", 10L);
         Mockito.when(customerRepository.findById(customer.getId())).thenReturn(Optional.of(customer));
-
-        // then
         when()
                 .get(getRootUrl() + "/customer/" + customer.getId())
                 .then()
@@ -87,7 +75,6 @@ class CustomerControllerTest {
                 .extract().response().body()
                 .as(Customer.class)
                 .getName().equals(customer.getName());
-//        assertThat(customer).returns(customer.getId(), c)
 
     }
 
